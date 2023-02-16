@@ -35,7 +35,7 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name COLLATE NOCASE", artist).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
+                return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name", artist).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
             }
         }
 
@@ -43,7 +43,7 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE FirstName LIKE @FirstName AND LastName LIKE @LastName COLLATE NOCASE", artist).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
+                return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE FirstName LIKE @FirstName AND LastName LIKE @LastName", artist).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
             }
         }
 
@@ -69,7 +69,7 @@ namespace DapperDAL
             {
                 artist.Name = !string.IsNullOrEmpty(artist.FirstName) ? $"{artist.FirstName} {artist.LastName}" : artist.LastName;
 
-                var foundArtist = cn.QueryFirstOrDefault<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name COLLATE NOCASE", artist);
+                var foundArtist = cn.QueryFirstOrDefault<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name", artist);
                 if (foundArtist != null)
                 {
                     artistId = 9999;
@@ -79,7 +79,7 @@ namespace DapperDAL
                     var number = cn.Execute("INSERT INTO Artist (FirstName, LastName, Name, Biography) VALUES (@FirstName, @LastName, @Name, @Biography)", artist);
                     if (number == 1)
                     {
-                        foundArtist = cn.QueryFirstOrDefault<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name COLLATE NOCASE", artist);
+                        foundArtist = cn.QueryFirstOrDefault<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name", artist);
                         artistId = foundArtist?.ArtistId ?? 0;
                     }
                 }
@@ -130,7 +130,7 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var artists = cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL OR Biography = '';").ToList();
+                var artists = cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL;").ToList();
 
                 return artists;
             }
@@ -141,9 +141,8 @@ namespace DapperDAL
             var number = 0;
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                number = cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL OR Biography = '';").Count();
+                number = (int)cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL;").Count();
             }
-
             return number;
         }
 

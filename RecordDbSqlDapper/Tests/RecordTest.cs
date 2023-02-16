@@ -132,12 +132,12 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
-        internal static void GetRecordByName()
+        internal static void GetRecordByName(string name)
         {
             // Note: you can use %% to get a partial name. 
             RecordModel record = new()
             {
-                Name = "%Cutting Edge%"
+                Name = $"%{name}%"
             };
 
             var newRecord = _rd.GetRecordByName(record);
@@ -212,12 +212,11 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine(message);
         }
 
-        internal static void CreateRecord()
+        internal static void CreateRecord(int artistId)
         {
             RecordModel record = new()
             {
-                // RecordId = 283,
-                ArtistId = 823,
+                ArtistId = artistId,
                 Name = "No Fun Allowed",
                 Field = "Rock",
                 Recorded = 1986,
@@ -228,7 +227,7 @@ namespace RecordDbSqlDapper.Tests
                 Media = "CD",
                 Bought = "01-06-2022",
                 Cost = 19.95m,
-                Review = "This is Alans first album."
+                Review = "This is James\'s first album."
 
             };
 
@@ -245,11 +244,11 @@ namespace RecordDbSqlDapper.Tests
 
         }
 
-        internal static void UpdateRecord()
+        internal static void UpdateRecord(int recordId)
         {
             RecordModel record = new()
             {
-                RecordId = 5251,
+                RecordId = recordId,
                 Name = "Plenty Of Fun Allowed",
                 Field = "Jazz",
                 Recorded = 1988,
@@ -260,7 +259,7 @@ namespace RecordDbSqlDapper.Tests
                 Media = "CD",
                 Bought = "01-05-2022",
                 Cost = 29.95m,
-                Review = "This is Alans second album."
+                Review = "This is James\'s second album."
             };
 
             var i = _rd.UpdateRecord(record);

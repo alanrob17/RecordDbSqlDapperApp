@@ -38,9 +38,9 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
-        internal static void GetArtistByName()
+        internal static void GetArtistByName(string name)
         {
-            var artistToFind = new ArtistModel { Name = "Bob Dylan" };
+            var artistToFind = new ArtistModel { Name = name };
 
             var artist = _ad.GetArtistByName(artistToFind);
             var message = artist?.ArtistId > 0 ? $"Id: {artist.ArtistId} - {artist.FirstName} {artist.LastName}." : "ERROR: Artist not found!";
@@ -72,11 +72,11 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
-        internal static void UpdateArtist()
+        internal static void UpdateArtist(int artistId)
         {
             ArtistModel artist = new()
             {
-                ArtistId = 823,
+                ArtistId = artistId,
                 FirstName = "Alan",
                 LastName = "Robson",
                 Biography = "Alan is an Australian C&W superstar."
@@ -117,7 +117,7 @@ namespace RecordDbSqlDapper.Tests
         internal static void ArtistHtml(int artistId)
         {
             var artist = _ad.GetArtistById(artistId);
-            var message = artist?.ArtistId > 0 ? $"<p><strong>Id:</strong> {artist.ArtistId}</p>\n<p><strong>Name:</strong> {artist.FirstName} {artist.LastName}</p>\n<p><strong>Biography:</strong>\n<div>{artist.Biography}</p></div>" : "ERROR: Artist not found!";
+            var message = artist?.ArtistId > 0 ? $"<p><strong>Id:</strong> {artist.ArtistId}</p>\n<p><strong>Name:</strong> {artist.FirstName} {artist.LastName}</p>\n<p><strong>Biography:</strong></p>\n<div>{artist.Biography}</p></div>" : "ERROR: Artist not found!";
 
             Console.WriteLine(message);
         }

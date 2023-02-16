@@ -14,17 +14,17 @@ namespace RecordDbSqlDapper
 
             // _at.CreateArtist();
 
-            // _at.GetArtistByName();
+            // _at.GetArtistByName("Bob Dylan");
 
-            // _at.UpdateArtist();
+            // _at.UpdateArtist(837);
 
             // _at.GetArtistById(114);
 
-            // _at.DeleteArtist(823);
+            // _at.DeleteArtist(838);
 
             // _at.GetBiography(114);
 
-            // _at.ArtistHtml(250);
+            // _at.ArtistHtml(114);
 
             // _at.GetArtistId("Bob", "Dylan");
 
@@ -36,15 +36,15 @@ namespace RecordDbSqlDapper
             #region Artist Methods
             // _rt.GetAllRecords();
 
-            // _rt.CreateRecord();
+            // _rt.CreateRecord(838);
 
             // _rt.GetRecordById(133);
 
-            // _rt.UpdateRecord();
+            // _rt.UpdateRecord(5259);
 
-            // _rt.DeleteRecord(5253);
+            // _rt.DeleteRecord(5258);
 
-            // _rt.GetRecordByName();
+            // _rt.GetRecordByName("Cutting Edge");
 
             // _rt.GetRecordsByArtistId(114);
 

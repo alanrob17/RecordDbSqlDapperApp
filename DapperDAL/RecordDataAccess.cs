@@ -101,7 +101,7 @@ namespace DapperDAL
             RecordModel? foundRecord = null;
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                foundRecord = cn.Query<RecordModel>($"SELECT * FROM Record WHERE Name LIKE @Name COLLATE NOCASE", record).FirstOrDefault();
+                foundRecord = cn.Query<RecordModel>($"SELECT * FROM Record WHERE Name LIKE @Name", record).FirstOrDefault();
             }
 
             return foundRecord ?? new RecordModel { RecordId = 0 };
@@ -327,7 +327,7 @@ namespace DapperDAL
             var query = "SELECT a.ArtistId, A.Name AS Artist, r.RecordId, r.Name, r.Recorded, r.Discs, r.Rating, r.Media " +
                 "FROM Artist a " +
                 "INNER JOIN Record r ON a.ArtistId = r.ArtistId " +
-                "WHERE r.Review = '' " + "" +
+                "WHERE r.Review IS NULL " +
                 "ORDER BY a.LastName, a.FirstName;";
 
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
@@ -340,7 +340,7 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                return cn.Query<int>($"SELECT COUNT(Review) FROM Record WHERE Review = '';").FirstOrDefault();
+                return cn.Query<int>($"SELECT * FROM Record WHERE Review IS NULL;").Count();
             }
         }
 
