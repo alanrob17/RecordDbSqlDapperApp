@@ -38,6 +38,20 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void CreateArtistSP()
+        {
+            ArtistModel artist = new()
+            {
+                FirstName = "Ethan",
+                LastName = "Robson",
+                Biography = "Ethan is a Jazz Fusion artist."
+            };
+
+            var artistId = _ad.AddArtistSP(artist);
+
+            Console.WriteLine(artistId);
+        }
+
         internal static void GetArtistByName(string name)
         {
             var artistToFind = new ArtistModel { Name = name };
@@ -89,6 +103,23 @@ namespace RecordDbSqlDapper.Tests
 
         }
 
+        internal static void UpdateArtistSP(int artistId)
+        {
+            ArtistModel artist = new()
+            {
+                ArtistId = artistId,
+                FirstName = "Alano",
+                LastName = "Robosono",
+                Biography = "Alano is an Austrian C&W superstar."
+            };
+
+            var result = (int)_ad.UpdateArtistSP(artist);
+
+            var message = result > 0 ? "Artist updated." : "ERROR: Artist not updated!";
+            Console.WriteLine(message);
+        }
+
+
         internal static void GetArtistById(int artistId)
         {
             var artist = _ad.GetArtistById(artistId);
@@ -99,8 +130,15 @@ namespace RecordDbSqlDapper.Tests
 
         internal static void DeleteArtist(int artistId)
         {
-            int i = _ad.DeleteArtist(artistId);
-            var message = i > 0 ? "Artist deleted." : "ERROR: Artist not deleted!";
+            int result = _ad.DeleteArtist(artistId);
+            var message = result > 0 ? "Artist deleted." : "ERROR: Artist not deleted!";
+            Console.WriteLine(message);
+        }
+
+        internal static void DeleteArtistSP(int artistId)
+        {
+            int result = _ad.DeleteArtistSP(artistId);
+            var message = result > 0 ? "Artist deleted." : "ERROR: Artist not deleted!";
             Console.WriteLine(message);
         }
 

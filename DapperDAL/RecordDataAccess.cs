@@ -118,6 +118,33 @@ namespace DapperDAL
             return result;
         }
 
+        public static int UpdateRecordSP(RecordModel record)
+        {
+            var result = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@RecordId", record.RecordId);
+                parameter.Add("@Name", record.Name);
+                parameter.Add("@Field", record.Field);
+                parameter.Add("@Recorded", record.Recorded);
+                parameter.Add("@Label", record.Label);
+                parameter.Add("@Pressing", record.Pressing);
+                parameter.Add("@Rating", record.Rating);
+                parameter.Add("@Discs", record.Discs);
+                parameter.Add("@Media", record.Media);
+                parameter.Add("@Bought", record.Bought);
+                parameter.Add("@Cost", record.Cost);
+                parameter.Add("@Review", record.Review);
+                parameter.Add("@Result", result, dbType: DbType.Int32, direction: ParameterDirection.InputOutput);
+
+                cn.Execute("adm_UpdateRecord", parameter, commandType: CommandType.StoredProcedure);
+
+                result = parameter.Get<int>("@Result");
+            }
+            return result;
+        }
+
         public static int AddRecord(RecordModel record)
         {
             var result = 0;
@@ -130,6 +157,33 @@ namespace DapperDAL
             return result;
         }
 
+        public static object AddRecordSP(RecordModel record)
+        {
+            var recordId = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@RecordId", record.RecordId, dbType: DbType.Int32, direction: ParameterDirection.InputOutput);
+                parameter.Add("@ArtistId", record.ArtistId);
+                parameter.Add("@Name", record.Name);
+                parameter.Add("@Field", record.Field);
+                parameter.Add("@Recorded", record.Recorded);
+                parameter.Add("@Label", record.Label);
+                parameter.Add("@Pressing", record.Pressing);
+                parameter.Add("@Rating", record.Rating);
+                parameter.Add("@Discs", record.Discs);
+                parameter.Add("@Media", record.Media);
+                parameter.Add("@Bought", record.Bought);
+                parameter.Add("@Cost", record.Cost);
+                parameter.Add("@Review", record.Review);
+
+                cn.Execute("adm_RecordInsert", parameter, commandType: CommandType.StoredProcedure);
+
+                recordId = parameter.Get<int>("@RecordId");
+            }
+            return recordId;
+        }
+
         public static int DeleteRecord(int recordId)
         {
             var result = 0;
@@ -138,6 +192,19 @@ namespace DapperDAL
                 result = cn.Execute($"DELETE FROM Record WHERE RecordId={recordId}");
             }
 
+            return result;
+        }
+
+        public static int DeleteRecordSP(int recordId)
+        {
+            var result = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@RecordId", recordId);
+
+                result = (int)cn.Execute("up_DeleteRecord", parameters, commandType: CommandType.StoredProcedure);
+            }
             return result;
         }
 

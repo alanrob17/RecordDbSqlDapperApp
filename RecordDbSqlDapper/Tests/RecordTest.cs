@@ -228,7 +228,6 @@ namespace RecordDbSqlDapper.Tests
                 Bought = "01-06-2022",
                 Cost = 19.95m,
                 Review = "This is James\'s first album."
-
             };
 
             var result = _rd.AddRecord(record);
@@ -236,12 +235,42 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine(message);
         }
 
+        internal static void CreateRecordSP(int artistId)
+        {
+            RecordModel record = new()
+            {
+                ArtistId = artistId,
+                Name = "Way More Fun Allowed",
+                Field = "Rock",
+                Recorded = 1990,
+                Label = "Rabble",
+                Pressing = "Ger",
+                Rating = "****",
+                Discs = 1,
+                Media = "CD",
+                Bought = "01-07-2022",
+                Cost = 29.95m,
+                Review = "This is Ethans\'s first album."
+            };
+
+            var recordId = _rd.AddRecordSP(record);
+
+            Console.WriteLine(recordId);
+        }
+
+
         internal static void DeleteRecord(int recordId)
         {
-            int i = _rd.DeleteRecord(recordId);
-            var message = i > 0 ? "Record deleted." : "ERROR: Record not deleted!";
+            int result = _rd.DeleteRecord(recordId);
+            var message = result > 0 ? "Record deleted." : "ERROR: Record not deleted!";
             Console.WriteLine(message);
+        }
 
+        internal static void DeleteRecordSP(int recordId)
+        {
+            int result = _rd.DeleteRecordSP(recordId);
+            var message = result > 0 ? "Record deleted." : "ERROR: Record not deleted!";
+            Console.WriteLine(message);
         }
 
         internal static void UpdateRecord(int recordId)
@@ -266,7 +295,31 @@ namespace RecordDbSqlDapper.Tests
 
             var message = i > 0 ? "Record updated." : "ERROR: Record not updated!";
             Console.WriteLine(message);
+        }
 
+        internal static void UpdateRecordSP(int recordId)
+        {
+            RecordModel record = new()
+            {
+
+                RecordId = recordId,
+                Name = "Too Much Fun Allowed",
+                Field = "Hip-Hop",
+                Recorded = 2019,
+                Label = "Rebel",
+                Pressing = "Aus",
+                Rating = "***",
+                Discs = 1,
+                Media = "CD",
+                Bought = "01-09-2022",
+                Cost = 19.95m,
+                Review = "This is Ethan\'s third album."
+            };
+
+            var i = _rd.UpdateRecordSP(record);
+
+            var message = i > 0 ? "Record updated." : "ERROR: Record not updated!";
+            Console.WriteLine(message);
         }
 
         // Single record view

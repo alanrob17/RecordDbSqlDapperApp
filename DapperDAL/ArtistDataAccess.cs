@@ -47,7 +47,6 @@ namespace DapperDAL
             }
         }
 
-
         public static int UpdateArtist(ArtistModel artist)
         {
             var i = 0;
@@ -59,6 +58,31 @@ namespace DapperDAL
             }
 
             return i;
+        }
+
+        public static object UpdateArtistSP(ArtistModel artist)
+        {
+            var result = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                if (string.IsNullOrEmpty(artist.Name))
+                {
+                    artist.Name = !string.IsNullOrEmpty(artist.FirstName) ? $"{artist.FirstName} {artist.LastName}" : artist.LastName;
+                }
+
+                var parameter = new DynamicParameters();
+                parameter.Add("@ArtistId", artist.ArtistId);
+                parameter.Add("@FirstName", artist.FirstName);
+                parameter.Add("@LastName", artist.LastName);
+                parameter.Add("@Name", artist.Name);
+                parameter.Add("@Biography", artist.Biography);
+                parameter.Add("@Result", dbType: DbType.Int32, direction: ParameterDirection.InputOutput);
+
+                cn.Execute("up_UpdateArtist", parameter, commandType: CommandType.StoredProcedure);
+
+                result = parameter.Get<int>("@ArtistId");
+            }
+            return result;
         }
 
         public static int AddArtist(ArtistModel artist)
@@ -88,6 +112,28 @@ namespace DapperDAL
             return artistId;
         }
 
+        public static int AddArtistSP(ArtistModel artist)
+        {
+            var artistId = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                artist.Name = !string.IsNullOrEmpty(artist.FirstName) ? $"{artist.FirstName} {artist.LastName}" : artist.LastName;
+
+                var parameter = new DynamicParameters();
+                parameter.Add("@ArtistId", artist.ArtistId, dbType: DbType.Int32, direction: ParameterDirection.InputOutput);
+                parameter.Add("@FirstName", artist.FirstName);
+                parameter.Add("@LastName", artist.LastName);
+                parameter.Add("@Name", artist.Name);
+                parameter.Add("@Biography", artist.Biography);
+
+                cn.Execute("adm_ArtistInsert", parameter, commandType: CommandType.StoredProcedure);
+
+                //To get newly created ID back  
+                artistId = parameter.Get<int>("@ArtistId");
+            }
+            return artistId;
+        }
+
         public static int DeleteArtist(int artistId)
         {
             var result = 0;
@@ -103,6 +149,19 @@ namespace DapperDAL
                 result = cn.Execute($"DELETE FROM Artist WHERE ArtistId={artistId}");
             }
 
+            return result;
+        }
+
+        public static int DeleteArtistSP(int artistId)
+        {
+            var result = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ArtistId", artistId);
+
+                result = (int)cn.Execute("up_deleteArtist", parameters, commandType: CommandType.StoredProcedure);
+            }
             return result;
         }
 
