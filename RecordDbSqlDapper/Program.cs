@@ -11,11 +11,13 @@ namespace RecordDbSqlDapper
         {
             #region Artist Methods
             // _at.GetAllArtists();
+            // _at.GetAllArtistsSP();
 
             // _at.CreateArtist();
             // _at.CreateArtistSP();
 
             // _at.GetArtistByName("Bob Dylan");
+            _at.GetArtistByNameSP("Bob Dylan");
 
             // _at.UpdateArtist(837);
             // _at.UpdateArtistSP(842);

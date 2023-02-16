@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Dapper;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Reflection.Metadata;
 
 namespace DapperDAL
 {
@@ -23,6 +24,14 @@ namespace DapperDAL
             }
         }
 
+        public static List<ArtistModel> GetArtistsSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.Query<ArtistModel>("up_ArtistSelectFull", commandType: CommandType.StoredProcedure).ToList(); 
+            }
+        }
+
         public static ArtistModel? GetArtistById(int artistId)
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
@@ -35,7 +44,18 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Name LIKE @Name", artist).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
+                return cn.Query<ArtistModel>("up_ArtistSelectFull", commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
+            }
+        }
+
+        public static ArtistModel? GetArtistByNameSP(ArtistModel artist)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@Name", artist.Name);
+
+                return cn.Query<ArtistModel>("up_GetArtistByName", parameter, commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
             }
         }
 

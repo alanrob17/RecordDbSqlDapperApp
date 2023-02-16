@@ -62,9 +62,30 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine(message);
         }
 
+        internal static void GetArtistByNameSP(string name)
+        {
+            var artistToFind = new ArtistModel { Name = name };
+
+            var artist = _ad.GetArtistByNameSP(artistToFind);
+            var message = artist?.ArtistId > 0 ? $"Id: {artist.ArtistId} - {artist.FirstName} {artist.LastName}." : "ERROR: Artist not found!";
+
+            Console.WriteLine(message);
+        }
+
         internal static void GetAllArtists()
         {
             var artists = _ad.GetArtists();
+
+            foreach (var artist in artists)
+            {
+                PrintArtist(artist);
+            }
+        }
+
+
+        internal static void GetAllArtistsSP()
+        {
+            var artists = _ad.GetArtistsSP();
 
             foreach (var artist in artists)
             {
