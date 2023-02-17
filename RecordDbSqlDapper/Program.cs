@@ -17,25 +17,31 @@ namespace RecordDbSqlDapper
             // _at.CreateArtistSP();
 
             // _at.GetArtistByName("Bob Dylan");
-            _at.GetArtistByNameSP("Bob Dylan");
+            // _at.GetArtistByNameSP("Bob Dylan");
 
             // _at.UpdateArtist(837);
             // _at.UpdateArtistSP(842);
 
             // _at.GetArtistById(114);
+            // _at.GetArtistByIdSP(114);
 
             // _at.DeleteArtist(838);
             // _at.DeleteArtistSP(842);
 
             // _at.GetBiography(114);
+            // _at.GetBiographySP(114);
 
             // _at.ArtistHtml(114);
+            // _at.ArtistHtmlSP(114);
 
             // _at.GetArtistId("Bob", "Dylan");
+            // _at.GetArtistIdSP("Bob", "Dylan");
 
             // _at.GetArtistsWithNoBio();
+            // _at.GetArtistsWithNoBioSP();
 
             // _at.GetNoBiographyCount();
+            // _at.GetNoBiographyCountSP();
             #endregion
 
             #region Record Methods

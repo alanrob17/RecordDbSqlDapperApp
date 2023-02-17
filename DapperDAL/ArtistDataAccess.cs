@@ -40,6 +40,17 @@ namespace DapperDAL
             }
         }
 
+        public static ArtistModel? GetArtistByIdSP(int artistId)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@ArtistId", artistId);
+
+                return cn.Query<ArtistModel>("up_ArtistSelectById", parameter, commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
+            }
+        }
+
         public static ArtistModel? GetArtistByName(ArtistModel artist)
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
@@ -58,12 +69,23 @@ namespace DapperDAL
                 return cn.Query<ArtistModel>("up_GetArtistByName", parameter, commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
             }
         }
-
         public static ArtistModel? GetArtistByFirstLastName(ArtistModel artist)
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE FirstName LIKE @FirstName AND LastName LIKE @LastName", artist).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
+            }
+        }
+
+        public static ArtistModel? GetArtistByFirstLastNameSP(ArtistModel artist)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@FirstName", artist.FirstName);
+                parameter.Add("@LastName", artist.LastName);
+
+                return cn.Query<ArtistModel>("up_ArtistByFirstLastName", parameter, commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new ArtistModel { ArtistId = 0 };
             }
         }
 
@@ -186,7 +208,7 @@ namespace DapperDAL
         }
 
         /// <summary>
-        /// Get biography from the current record Id.
+        /// Get biography from the current Artist Id.
         /// </summary>
         public static string GetBiography(int artistId)
         {
@@ -205,13 +227,42 @@ namespace DapperDAL
             return biography.ToString();
         }
 
+        /// <summary>
+        /// Get biography from the current Artist Id.
+        /// </summary>
+        public static string GetBiographySP(int artistId)
+        {
+            var biography = new StringBuilder();
+
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ArtistId", artistId);
+
+                var artist = cn.QueryFirstOrDefault<ArtistModel>("up_ArtistSelectById", parameters, commandType: CommandType.StoredProcedure);
+                if (artist is ArtistModel)
+                {
+                    biography.Append($"Name: {artist.Name}\n");
+                    biography.Append($"Biography:\n{artist.Biography}");
+                }
+            }
+
+            return biography.ToString();
+        }
+
         public static List<ArtistModel> GetArtistsWithNoBio()
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var artists = cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL;").ToList();
+                return cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL;").ToList();
+            }
+        }
 
-                return artists;
+        public static List<ArtistModel> GetArtistsWithNoBioSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.Query<ArtistModel>("up_selectArtistsWithNoBio", commandType: CommandType.StoredProcedure).ToList();
             }
         }
 
@@ -221,6 +272,16 @@ namespace DapperDAL
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 number = (int)cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL;").Count();
+            }
+            return number;
+        }
+
+        public static int NoBiographyCountSP()
+        {
+            var number = 0;
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                number = cn.Query<ArtistModel>("up_NoBioCount", commandType: CommandType.StoredProcedure).Count();
             }
             return number;
         }

@@ -149,6 +149,14 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine(message);
         }
 
+        internal static void GetArtistByIdSP(int artistId)
+        {
+            var artist = _ad.GetArtistByIdSP(artistId);
+            var message = artist?.ArtistId > 0 ? $"Id: {artist.ArtistId} - {artist.FirstName} {artist.LastName}." : "ERROR: Artist not found!";
+
+            Console.WriteLine(message);
+        }
+
         internal static void DeleteArtist(int artistId)
         {
             int result = _ad.DeleteArtist(artistId);
@@ -173,7 +181,25 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetBiographySP(int artistid)
+        {
+            var biography = _ad.GetBiographySP(artistid);
+
+            if (biography.Length > 5)
+            {
+                Console.WriteLine(biography);
+            }
+        }
+
         internal static void ArtistHtml(int artistId)
+        {
+            var artist = _ad.GetArtistById(artistId);
+            var message = artist?.ArtistId > 0 ? $"<p><strong>Id:</strong> {artist.ArtistId}</p>\n<p><strong>Name:</strong> {artist.FirstName} {artist.LastName}</p>\n<p><strong>Biography:</strong></p>\n<div>{artist.Biography}</p></div>" : "ERROR: Artist not found!";
+
+            Console.WriteLine(message);
+        }
+
+        internal static void ArtistHtmlSP(int artistId)
         {
             var artist = _ad.GetArtistById(artistId);
             var message = artist?.ArtistId > 0 ? $"<p><strong>Id:</strong> {artist.ArtistId}</p>\n<p><strong>Name:</strong> {artist.FirstName} {artist.LastName}</p>\n<p><strong>Biography:</strong></p>\n<div>{artist.Biography}</p></div>" : "ERROR: Artist not found!";
@@ -192,6 +218,17 @@ namespace RecordDbSqlDapper.Tests
 
         }
 
+        internal static void GetArtistIdSP(string firstName, string lastName)
+        {
+            var artistToFind = new ArtistModel { FirstName = firstName, LastName = lastName };
+
+            var artist = _ad.GetArtistByFirstLastNameSP(artistToFind);
+            var message = artist?.ArtistId > 0 ? $"Id: {artist.ArtistId} - {artist.FirstName} {artist.LastName}." : "ERROR: Artist not found!";
+
+            Console.WriteLine(message);
+
+        }
+
         internal static void GetArtistsWithNoBio()
         {
             List<ArtistModel> artists = _ad.GetArtistsWithNoBio();
@@ -202,7 +239,24 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetArtistsWithNoBioSP()
+        {
+            List<ArtistModel> artists = _ad.GetArtistsWithNoBioSP();
+
+            foreach (var artist in artists)
+            {
+                Console.WriteLine($"Id: {artist.ArtistId} - {artist.Name}");
+            }
+        }
+
         internal static void GetNoBiographyCount()
+        {
+            var number = _ad.NoBiographyCount();
+
+            Console.WriteLine($"The total number of artists with missing biographies: {number}.");
+        }
+
+        internal static void GetNoBiographyCountSP()
         {
             var number = _ad.NoBiographyCount();
 
