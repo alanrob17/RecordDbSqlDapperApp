@@ -18,9 +18,7 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var artists = cn.Query<ArtistModel>("SELECT * FROM Artist ORDER BY LastName, FirstName", new DynamicParameters());
-
-                return artists.ToList();
+                return cn.Query<ArtistModel>("SELECT * FROM Artist ORDER BY LastName, FirstName", new DynamicParameters()).ToList();
             }
         }
 
@@ -268,22 +266,18 @@ namespace DapperDAL
 
         public static int NoBiographyCount()
         {
-            var number = 0;
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                number = (int)cn.Query<ArtistModel>("SELECT * FROM Artist WHERE Biography IS NULL;").Count();
+                return cn.ExecuteScalar<int>("SELECT Count(*) FROM Artist WHERE Biography IS NULL;");
             }
-            return number;
         }
 
         public static int NoBiographyCountSP()
         {
-            var number = 0;
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                number = cn.Query<ArtistModel>("up_NoBioCount", commandType: CommandType.StoredProcedure).Count();
+                return cn.ExecuteScalar<int>("up_NoBioCount", commandType: CommandType.StoredProcedure);
             }
-            return number;
         }
 
         private static string LoadConnectionString(string id = "RecordDB")

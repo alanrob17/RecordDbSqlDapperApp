@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,9 +19,15 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var records = cn.Query<RecordModel>("SELECT * FROM Record ORDER BY Recorded DESC", new DynamicParameters());
+                return cn.Query<RecordModel>("SELECT * FROM Record ORDER BY Recorded DESC", new DynamicParameters()).ToList();
+            }
+        }
 
-                return records.ToList();
+        public static List<dynamic> GetRecordsSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.Query<dynamic>("up_RecordSelectAll", commandType: CommandType.StoredProcedure).ToList();
             }
         }
 
@@ -28,9 +35,18 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var records = cn.Query<RecordModel>($"SELECT * FROM Record WHERE ArtistId = {artistId} ORDER BY Recorded DESC");
+                return cn.Query<RecordModel>($"SELECT * FROM Record WHERE ArtistId = {artistId} ORDER BY Recorded DESC").ToList();
+            }
+        }
 
-                return records.ToList();
+        public static List<RecordModel> GetRecordsByArtistIdSP(int artistId)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@ArtistId", artistId);
+
+                return cn.Query<RecordModel>($"up_GetRecordsByArtistId", parameter, commandType: CommandType.StoredProcedure).ToList();
             }
         }
 
@@ -56,6 +72,27 @@ namespace DapperDAL
             }
         }
 
+        public static ArtistModel GetRecordsByArtistIdMultipleTablesSP(int artistId)
+        {
+
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@ArtistId", artistId);
+
+                var artist = cn.Query<ArtistModel>("up_ArtistSelectById", parameter, commandType: CommandType.StoredProcedure).SingleOrDefault();
+                var records = cn.Query<RecordModel>("up_GetRecordsByArtistId", parameter, commandType: CommandType.StoredProcedure).ToList();
+
+                if (artist is ArtistModel)
+                {
+                    artist.Records = records;
+                    return (ArtistModel)artist;
+                }
+                    
+                return new ArtistModel { ArtistId = 0 };
+            }
+        }
+
         public static List<ArtistModel> GetArtistRecordsMultipleTables()
         {
             List<ArtistModel> artists = new();
@@ -78,13 +115,41 @@ namespace DapperDAL
             return artists;
         }
 
+        public static List<ArtistModel> GetArtistRecordsMultipleTablesSP()
+        {
+            List<ArtistModel> artists = new();
+
+
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                artists = cn.Query<ArtistModel>("up_getFullArtistList", commandType: CommandType.StoredProcedure).ToList();
+                var records = cn.Query<RecordModel>("up_GetRecordList", commandType: CommandType.StoredProcedure).ToList();
+
+                foreach (var artist in artists)
+                {
+                    artist.Records = records.Where(r => r.ArtistId == artist.ArtistId).ToList();
+                }
+            }
+
+            return artists;
+        }
+
         public static List<RecordModel> GetRecordsByYear(int year)
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var records = cn.Query<RecordModel>($"SELECT * FROM Record WHERE Recorded = {year} ORDER BY ArtistId");
+                return cn.Query<RecordModel>($"SELECT * FROM Record WHERE Recorded = {year} ORDER BY ArtistId").ToList();
+            }
+        }
 
-                return records.ToList();
+        public static List<dynamic> GetRecordsByYearSP(int year)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@Year", year);
+
+                return cn.Query<dynamic>($"up_SelectYearRecorded", parameter, commandType: CommandType.StoredProcedure).ToList();
             }
         }
 
@@ -96,15 +161,31 @@ namespace DapperDAL
             }
         }
 
-        public static RecordModel GetRecordByName(RecordModel record)
+        public static RecordModel GetRecordByIdSP(int recordId)
         {
-            RecordModel? foundRecord = null;
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                foundRecord = cn.Query<RecordModel>($"SELECT * FROM Record WHERE Name LIKE @Name", record).FirstOrDefault();
+                return cn.Query<RecordModel>($"up_getSingleRecord", commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new RecordModel { RecordId = 0 };
             }
+        }
 
-            return foundRecord ?? new RecordModel { RecordId = 0 };
+        public static RecordModel GetRecordByName(RecordModel record)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.Query<RecordModel>($"SELECT * FROM Record WHERE Name LIKE @Name", record).FirstOrDefault() ?? new RecordModel { RecordId = 0 };
+            }
+        }
+
+        public static RecordModel GetRecordByNameSP(RecordModel record)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@Name", record.Name);
+
+                return cn.Query<RecordModel>($"up_GetRecordByName", parameter, commandType: CommandType.StoredProcedure).FirstOrDefault() ?? new RecordModel { RecordId = 0 };
+            }
         }
 
         public static int UpdateRecord(RecordModel record)
@@ -212,9 +293,15 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var count = cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE Media = 'CD' OR Media = 'CD/DVD' OR Media = 'CD/Blu-ray'");
+                return cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE Media = 'CD' OR Media = 'CD/DVD'");
+            }
+        }
 
-                return count;
+        public static int GetTotalNumberOfCDsSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.ExecuteScalar<int>("up_GetTotalNumberOfAllCDs", commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -222,9 +309,15 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var count = cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record");
+                return cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record");
+            }
+        }
 
-                return count;
+        public static int GetTotalNumberOfDiscsSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.ExecuteScalar<int>("up_GetTotalNumberOfAllRecords", commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -232,9 +325,15 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var count = cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE Media = 'R'");
+                return cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE Media = 'R'");
+            }
+        }
 
-                return count;
+        public static int GetTotalNumberOfRecordsSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.ExecuteScalar<int>("up_GetTotalNumberOfRecords", commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -242,9 +341,15 @@ namespace DapperDAL
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var count = cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE Media = 'CD/Blu-ray' OR Media = 'Blu-ray'");
+                return cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE Media = 'CD/Blu-ray' OR Media = 'Blu-ray'");
+            }
+        }
 
-                return count;
+        public static object GetTotalNumberOfBluraysSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.ExecuteScalar<int>("up_GetTotalNumberOfAllBlurays", commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -258,6 +363,14 @@ namespace DapperDAL
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 return cn.Query<dynamic>(query).ToList();
+            }
+        }
+
+        public static List<dynamic> GetArtistRecordListSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.Query<dynamic>("up_GetAllArtistsAndRecords", commandType: CommandType.StoredProcedure).ToList();
             }
         }
 
@@ -288,9 +401,41 @@ namespace DapperDAL
 
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                var count = cn.ExecuteScalar<int>($"SELECT SUM(Discs) FROM Record WHERE Media = {mediaType}");
+                return cn.ExecuteScalar<int>($"SELECT SUM(Discs) FROM Record WHERE Media = {mediaType}");
+            }
+        }
 
-                return count;
+        /// <summary>
+        /// Count the number of discs.
+        /// </summary>
+        public static int CountAllDiscsSP(string media = "")
+        {
+            var mediaType = 0;
+
+            switch (media)
+            {
+                case "":
+                    mediaType = 0;
+                    break;
+                case "DVD":
+                    mediaType = 1;
+                    break;
+                case "CD":
+                    mediaType = 2;
+                    break;
+                case "R":
+                    mediaType = 3;
+                    break;
+                default:
+                    break;
+            }
+
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@MediaType", mediaType);
+
+                return cn.ExecuteScalar<int>("up_GetMediaCountByType", parameter, commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -321,6 +466,25 @@ namespace DapperDAL
             }
         }
 
+        public static dynamic? GetArtistRecordEntitySP(int recordId)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@RecordId", recordId);
+
+                var result = cn.QueryFirstOrDefault<dynamic>("up_GetArtistRecordByRecordId", parameter, commandType: CommandType.StoredProcedure);
+
+                if (result == null)
+                {
+                    result = new ExpandoObject();
+                    result.RecordId = 0;
+                }
+
+                return result;
+            }
+        }
+
         /// <summary>
         /// Get number of records for an artist.
         /// </summary>
@@ -330,10 +494,22 @@ namespace DapperDAL
 
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                discs = cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE artistId = @artistId;", new { artistId });
+                return cn.ExecuteScalar<int>("SELECT SUM(Discs) FROM Record WHERE artistId = @artistId;", new { artistId });
             }
+        }
 
-            return discs;
+        /// <summary>
+        /// Get number of records for an artist.
+        /// </summary>
+        public static dynamic GetArtistNumberOfRecordsSP(int artistId)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@ArtistId", artistId);
+
+                return cn.QueryFirstOrDefault<dynamic>("up_GetArtistAndNumberOfRecords", parameter, commandType: CommandType.StoredProcedure);
+            }
         }
 
         /// <summary>
@@ -344,6 +520,20 @@ namespace DapperDAL
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 return cn.Query<RecordModel>($"SELECT * FROM Record WHERE RecordId = {recordId}").FirstOrDefault() ?? new RecordModel { RecordId = 0 };
+            }
+        }
+
+        /// <summary>
+        /// Get record details from ToString method.
+        /// </summary>
+        public static RecordModel GetFormattedRecordSP(int recordId)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new DynamicParameters();
+                parameter.Add("@RecordId", recordId);
+
+                return cn.Query<RecordModel>($"up_getSingleRecord").FirstOrDefault() ?? new RecordModel { RecordId = 0 };
             }
         }
 
@@ -358,19 +548,37 @@ namespace DapperDAL
             }
         }
 
+        public static string GetArtistNameFromRecordSP(int recordId)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new { recordId };
+
+                return cn.QuerySingleOrDefault<string>("up_GetArtistNameByRecordId", parameter, commandType: CommandType.StoredProcedure);
+            }
+        }
+
         /// <summary>
         /// Get the number of discs for a particular year.
         /// </summary>
         public static int GetDiscCountForYear(int year)
         {
-            var discCount = 0;
-
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                discCount = cn.Query<int>($"SELECT COUNT(*) FROM Record WHERE Recorded = {year}").FirstOrDefault();
+                return cn.Query<int>($"SELECT SUM(Discs) FROM Record WHERE Recorded = {year};").FirstOrDefault();
             }
+        }
 
-            return discCount;
+        /// <summary>
+        /// Get the number of discs for a particular year.
+        /// </summary>
+        public static int GetDiscCountForYearSP(int year)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new { year };
+                return cn.ExecuteScalar<int>($"up_GetRecordedYearNumber", parameter, commandType: CommandType.StoredProcedure);
+            }
         }
 
         /// <summary>
@@ -383,10 +591,22 @@ namespace DapperDAL
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 // get year from bought date
-                discCount = cn.Query<int>($"SELECT SUM(Discs) FROM Record WHERE Bought like '%{year}%'").FirstOrDefault();
+                return cn.Query<int>($"SELECT SUM(Discs) FROM Record WHERE Bought like '%{year}%'").FirstOrDefault();
             }
+        }
 
-            return discCount;
+        /// <summary>
+        /// Get the number of discs that I bought for a particular year.
+        /// </summary>
+        public static int GetBoughtDiscCountForYearSP(string year)
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                var parameter = new { year };
+
+                // get year from bought date
+                return cn.ExecuteScalar<int>("up_GetBoughtDiscCountForYear", parameter, commandType: CommandType.StoredProcedure);
+            }
         }
 
         public static List<dynamic> MissingRecordReviews()
@@ -403,6 +623,14 @@ namespace DapperDAL
             }
         }
 
+        public static List<dynamic> MissingRecordReviewsSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.Query<dynamic>("up_MissingRecordReview", commandType: CommandType.StoredProcedure).ToList();
+            }
+        }
+
         public static int GetNoReviewCount()
         {
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
@@ -411,18 +639,41 @@ namespace DapperDAL
             }
         }
 
+        public static int GetNoReviewCountSP()
+        {
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return cn.ExecuteScalar<int>($"up_GetNoRecordReviewCount", commandType: CommandType.StoredProcedure);
+            }
+        }
+
         public static List<dynamic> GetCostTotals()
         {
             var artistList = new List<dynamic>();
-            var query = "SELECT a.ArtistId, a.FirstName, a.LastName, a.Name, SUM(r.Cost) AS Cost " +
-                        "FROM Artist a " +
-                        "JOIN Record r ON a.ArtistId = r.ArtistId " +
-                        "GROUP BY a.ArtistId, a.FirstName, a.LastName, a.Name " +
-                        "ORDER BY a.LastName, a.FirstName;";
+            var query = "SELECT a.ArtistId, LTRIM(ISNULL(a.FirstName, '') + ' ' + a.LastName) AS Name, " +
+                        "TotalDiscs, " +
+                        "TotalCost " +
+                        "FROM Artist a, " +
+                        "(SELECT r.ArtistId, SUM(Discs) AS TotalDiscs, " +
+                        "SUM(Cost) AS TotalCost " +
+                        "FROM Record r " +
+                        "GROUP BY ArtistId) AS SubQuery " +
+                        "WHERE a.ArtistId = SubQuery.ArtistId " +
+                        "ORDER BY SubQuery.TotalCost DESC;";
 
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 return artistList = cn.Query<dynamic>(query).ToList();
+            }
+        }
+
+        public static List<dynamic> GetCostTotalsSP()
+        {
+            var artistList = new List<dynamic>();
+
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return artistList = cn.Query<dynamic>("sp_getTotalsForEachArtist", commandType: CommandType.StoredProcedure).ToList();
             }
         }
 
@@ -441,6 +692,19 @@ namespace DapperDAL
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
                 return artistList = cn.Query<dynamic>(query).ToList();
+            }
+        }
+
+        /// <summary>
+        /// Get total number of discs for each artist.
+        /// </summary>
+        public static IEnumerable<dynamic> GetTotalArtistDiscsSP()
+        {
+            var artistList = new List<dynamic>();
+
+            using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
+            {
+                return artistList = cn.Query<dynamic>("sp_getTotalsForEachArtist", commandType: CommandType.StoredProcedure).ToList();
             }
         }
 

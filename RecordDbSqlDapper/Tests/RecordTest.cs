@@ -39,9 +39,39 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        // see GetArtistRecordsMultipleTablesSP() for a better version.
+        internal static void GetRecordListSP()
+        {
+            var artists = _ad.GetArtistsSP();
+            var records = _rd.GetRecordsSP();
+
+            foreach (var artist in artists)
+            {
+                Console.WriteLine($"{artist.Name}:\n");
+
+                var ar = from r in records
+                         where artist.ArtistId == r.ArtistId
+                         orderby r.Recorded descending
+                         select r;
+
+                foreach (var rec in ar)
+                {
+                    Console.WriteLine($"\t{rec.Recorded} - {rec.Name} ({rec.Media})");
+                }
+
+                Console.WriteLine();
+            }
+        }
+
         internal static void GetTotalNumberOfBlurays()
         {
             var total = _rd.GetTotalNumberOfBlurays();
+            Console.WriteLine($"Total number of Blu-rays: {total}");
+        }
+
+        internal static void GetTotalNumberOfBluraysSP()
+        {
+            var total = _rd.GetTotalNumberOfBluraysSP();
             Console.WriteLine($"Total number of Blu-rays: {total}");
         }
 
@@ -51,15 +81,33 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine($"Total number of Records: {total}");
         }
 
+        internal static void GetTotalNumberOfRecordsSP()
+        {
+            var total = _rd.GetTotalNumberOfRecordsSP();
+            Console.WriteLine($"Total number of Records: {total}");
+        }
+
         internal static void GetTotalNumberOfCDs()
         {
             var total = _rd.GetTotalNumberOfCDs();
             Console.WriteLine($"Total number of CD's: {total}");
         }
 
+        internal static void GetTotalNumberOfCDsSP()
+        {
+            var total = _rd.GetTotalNumberOfCDsSP();
+            Console.WriteLine($"Total number of CD's: {total}");
+        }
+
         internal static void GetTotalNumberOfDiscs()
         {
             var total = _rd.GetTotalNumberOfDiscs();
+            Console.WriteLine($"Total number of Discs: {total}");
+        }
+
+        internal static void GetTotalNumberOfDiscsSP()
+        {
+            var total = _rd.GetTotalNumberOfDiscsSP();
             Console.WriteLine($"Total number of Discs: {total}");
         }
 
@@ -79,6 +127,23 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetRecordsByYearSP(int year)
+        {
+            var records = _rd.GetRecordsByYearSP(year);
+
+            if (records.Count > 0)
+            {
+                foreach (var record in records)
+                {
+                    Console.WriteLine($"{record.name} - {record.Title}, {record.Recorded} ({record.Media})");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No records found for {year}");
+            }
+        }
+
         internal static void GetRecordsByArtistId(int artistId)
         {
             var artist = _ad.GetArtistById(artistId);
@@ -90,6 +155,25 @@ namespace RecordDbSqlDapper.Tests
                 Console.WriteLine("\n----------------------------\n");
 
                 var records = _rd.GetRecordsByArtistId(artistId);
+
+                foreach (var record in records)
+                {
+                    PrintRecord(record);
+                }
+            }
+        }
+
+        internal static void GetRecordsByArtistIdSP(int artistId)
+        {
+            var artist = _ad.GetArtistByIdSP(artistId);
+
+            if (artist is ArtistModel)
+            {
+                _at.PrintArtist(artist);
+
+                Console.WriteLine("\n----------------------------\n");
+
+                var records = _rd.GetRecordsByArtistIdSP(artistId);
 
                 foreach (var record in records)
                 {
@@ -117,9 +201,43 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetRecordsByArtistIdMultipleTablesSP(int artistId)
+        {
+            var artist = _rd.GetRecordsByArtistIdMultipleTablesSP(artistId);
+
+            if (artist.ArtistId > 0)
+            {
+                _at.PrintArtist(artist);
+
+                Console.WriteLine("\n----------------------------\n");
+
+                var records = _rd.GetRecordsByArtistIdSP(artistId);
+
+                foreach (var record in records)
+                {
+                    PrintRecord(record);
+                }
+            }
+        }
+
         internal static void GetArtistRecordsMultipleTables()
         {
             var artists = _rd.GetArtistRecordsMultipleTables();
+
+            foreach (var artist in artists)
+            {
+                Console.WriteLine($"\n{artist.Name}");
+
+                foreach (var record in artist.Records)
+                {
+                    Console.WriteLine($"\t{record.Name}, {record.Recorded} ({record.Media})");
+                }
+            }
+        }
+
+        internal static void GetArtistRecordsMultipleTablesSP()
+        {
+            var artists = _rd.GetArtistRecordsMultipleTablesSP();
 
             foreach (var artist in artists)
             {
@@ -145,7 +263,34 @@ namespace RecordDbSqlDapper.Tests
             PrintArtistRecord(newRecord);
         }
 
+        internal static void GetRecordByNameSP(string name)
+        {
+            // Note: you can use %% to get a partial name. 
+            RecordModel record = new()
+            {
+                Name = $"%{name}%"
+            };
+
+            var newRecord = _rd.GetRecordByNameSP(record);
+
+            PrintArtistRecord(newRecord);
+        }
+
         internal static void GetRecordById(int recordId)
+        {
+            var record = _rd.GetRecordById(recordId);
+
+            if (record.RecordId > 0)
+            {
+                PrintArtistRecord(record);
+            }
+            else
+            {
+                Console.WriteLine("ERROR: Record not found!");
+            }
+        }
+
+        internal static void GetRecordByIdSP(int recordId)
         {
             var record = _rd.GetRecordById(recordId);
 
@@ -166,6 +311,17 @@ namespace RecordDbSqlDapper.Tests
             foreach (var record in records)
             {
                 PrintArtistRecord(record);
+            }
+        }
+
+        internal static void GetAllRecordsSP()
+        {
+            var records = _rd.GetRecordsSP();
+
+            foreach (var record in records)
+            {
+                var message = record != null ? $"{record.ArtistName} - {record.Recorded}: {record.Name} - {record.Field}." : $"Artist or record not found!\n\n"; 
+                Console.WriteLine(message);
             }
         }
 
@@ -204,6 +360,7 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        // TODO: refactor this to remove multiple Db calls.
         internal static void PrintArtistRecord(RecordModel record)
         {
             var artist = _ad.GetArtistById(record.ArtistId);
@@ -333,9 +490,43 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        // Single record view
+        internal static void GetRecordListMultipleTablesSP()
+        {
+            List<dynamic> records = _rd.GetArtistRecordListSP();
+
+            foreach (dynamic r in records)
+            {
+                Console.WriteLine($"Artist: {r.ArtistName} - {r.Name} - {r.Recorded} ({r.Media}) {r.Rating}.");
+            }
+        }
+
         internal static void CountDiscs(string media)
         {
             var discs = _rd.CountAllDiscs(media);
+
+            switch (media)
+            {
+                case "":
+                    Console.WriteLine($"The total number of all discs is: {discs}");
+                    break;
+                case "DVD":
+                    Console.WriteLine($"The total number of all DVD, CD/DVD Blu-ray or CD/Blu-ray discs is: {discs}");
+                    break;
+                case "CD":
+                    Console.WriteLine($"The total number of audio discs is: {discs}");
+                    break;
+                case "R":
+                    Console.WriteLine($"The total number of vinyl discs is: {discs}");
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        internal static void CountDiscsSP(string media)
+        {
+            var discs = _rd.CountAllDiscsSP(media);
 
             switch (media)
             {
@@ -367,6 +558,17 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetArtistRecordEntitySP(int recordId)
+        {
+            var r = _rd.GetArtistRecordEntitySP(recordId);
+
+            if (r.RecordId > 0)
+            {
+                Console.WriteLine($"{r.ArtistName}\n");
+                Console.WriteLine($"\t{r.Recorded} - {r.Name} ({r.Media}) - Rating: {r.Rating}");
+            }
+        }
+
         internal static void GetArtistNumberOfRecords(int artistId)
         {
             var artist = _ad.GetArtistById(artistId);
@@ -378,7 +580,27 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetArtistNumberOfRecordsSP(int artistId)
+        {
+            dynamic result = _rd.GetArtistNumberOfRecordsSP(artistId);
+
+            if (result != null)
+            {
+                Console.WriteLine($"{result.Name} has {result.DiscCount} discs.");
+            }
+        }
+
         internal static void GetRecordDetails(int recordId)
+        {
+            var record = _rd.GetFormattedRecord(recordId);
+
+            if (record is RecordModel)
+            {
+                Console.WriteLine(record.ToString());
+            }
+        }
+
+        internal static void GetRecordDetailsSP(int recordId)
         {
             var record = _rd.GetFormattedRecord(recordId);
 
@@ -394,6 +616,12 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine(name);
         }
 
+        internal static void GetArtistNameFromRecordSP(int recordId)
+        {
+            var name = _rd.GetArtistNameFromRecord(recordId);
+            Console.WriteLine(name);
+        }
+
         internal static void GetDiscCountForYear(int year)
         {
             var count = _rd.GetDiscCountForYear(year);
@@ -401,9 +629,23 @@ namespace RecordDbSqlDapper.Tests
             Console.WriteLine($"The total number of discs for {year} are {count}.");
         }
 
+        internal static void GetDiscCountForYearSP(int year)
+        {
+            var count = _rd.GetDiscCountForYearSP(year);
+
+            Console.WriteLine($"The total number of discs for {year} are {count}.");
+        }
+
         internal static void GetBoughtDiscCountForYear(string year)
         {
             var count = _rd.GetBoughtDiscCountForYear(year);
+
+            Console.WriteLine($"The total number of discs bought in {year} is {count}.");
+        }
+
+        internal static void GetBoughtDiscCountForYearSP(string year)
+        {
+            var count = _rd.GetBoughtDiscCountForYearSP(year);
 
             Console.WriteLine($"The total number of discs bought in {year} is {count}.");
         }
@@ -418,10 +660,26 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetNoRecordReviewSP()
+        {
+            List<dynamic> records = _rd.MissingRecordReviews();
+
+            foreach (var record in records)
+            {
+                Console.WriteLine($"{record.Artist} - Id: {record.RecordId} - {record.Name} - {record.Recorded}");
+            }
+        }
+
         internal static void GetNoReviewCount()
         {
-
             var count = _rd.GetNoReviewCount();
+
+            Console.WriteLine($"The total number of empty Reviews is {count}.");
+        }
+
+        internal static void GetNoReviewCountSP()
+        {
+            var count = _rd.GetNoReviewCountSP();
 
             Console.WriteLine($"The total number of empty Reviews is {count}.");
         }
@@ -432,7 +690,17 @@ namespace RecordDbSqlDapper.Tests
 
             foreach (var item in list)
             {
-                Console.WriteLine($"Total cost for {item.Name} is ${item.Cost:F2}.");
+                Console.WriteLine($"Total cost for {item.Name} with {item.TotalDiscs} discs is ${item.TotalCost:F2}.");
+            }
+        }
+
+        internal static void GetTotalArtistCostSP()
+        {
+            var list = _rd.GetCostTotalsSP();
+
+            foreach (var item in list)
+            {
+                Console.WriteLine($"Total cost for {item.Name} with {item.TotalDiscs} discs is ${item.TotalCost:F2}.");
             }
         }
 
@@ -446,9 +714,29 @@ namespace RecordDbSqlDapper.Tests
             }
         }
 
+        internal static void GetTotalArtistDiscsSP()
+        {
+            var list = _rd.GetTotalArtistDiscsSP();
+
+            foreach (var item in list)
+            {
+                Console.WriteLine($"Total number of discs for {item.Name} is {item.TotalDiscs}.");
+            }
+        }
+
         internal static void RecordHtml(int recordId)
         {
             var r = _rd.GetArtistRecordEntity(recordId);
+
+            if (r != null)
+            {
+                Console.WriteLine($"<p><strong>ArtistId:</strong> {r.ArtistId}</p>\n<p><strong>Artist:</strong> {r.Artist}</p>\n<p><strong>RecordId:</strong> {r.RecordId}</p>\n<p><strong>Recorded:</strong> {r.Recorded}</p>\n<p><strong>Name:</strong> {r.Name}</p>\n<p><strong>Rating:</strong> {r.Rating}</p>\n<p><strong>Media:</strong> {r.Media}</p>\n");
+            }
+        }
+
+        internal static void RecordHtmlSP(int recordId)
+        {
+            var r = _rd.GetArtistRecordEntitySP(recordId);
 
             if (r != null)
             {
