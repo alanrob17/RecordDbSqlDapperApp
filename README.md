@@ -30,6 +30,13 @@ I have a Javascript version of my Record database that consumes JSON data from l
 
 [Source code.](https://github.com/alanrob17/recorddb-app)
 
+## Packages
+
+* Dapper
+* Dapper.Contrib
+* System.Configuration.ConfigurationManager
+* System.Data.SqlClient
+
 ## Dapper
 
 I have a long history of working with C# and SQL Server and am proficient in creating stored procedures. Previously I have used ADO.Net to build my database layers and I am interested in using new alternatives for my databases.
