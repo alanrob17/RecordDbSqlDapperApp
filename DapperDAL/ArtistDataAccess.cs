@@ -154,24 +154,22 @@ namespace DapperDAL
 
         public static int AddArtistSP(ArtistModel artist)
         {
-            var artistId = 0;
+            artist.Name = !string.IsNullOrEmpty(artist.FirstName) ? $"{artist.FirstName} {artist.LastName}" : artist.LastName;
+
             using (IDbConnection cn = new SqlConnection(LoadConnectionString()))
             {
-                artist.Name = !string.IsNullOrEmpty(artist.FirstName) ? $"{artist.FirstName} {artist.LastName}" : artist.LastName;
+                var parameters = new DynamicParameters();
+                parameters.Add("@FirstName", artist.FirstName);
+                parameters.Add("@LastName", artist.LastName);
+                parameters.Add("@Name", artist.Name);
+                parameters.Add("@Biography", artist.Biography);
+                parameters.Add("@ArtistId", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                var parameter = new DynamicParameters();
-                parameter.Add("@ArtistId", artist.ArtistId, dbType: DbType.Int32, direction: ParameterDirection.InputOutput);
-                parameter.Add("@FirstName", artist.FirstName);
-                parameter.Add("@LastName", artist.LastName);
-                parameter.Add("@Name", artist.Name);
-                parameter.Add("@Biography", artist.Biography);
+                cn.Execute("adm_ArtistInsert", parameters, commandType: CommandType.StoredProcedure);
 
-                cn.Execute("adm_ArtistInsert", parameter, commandType: CommandType.StoredProcedure);
-
-                //To get newly created ID back  
-                artistId = parameter.Get<int>("@ArtistId");
+                int artistId = parameters.Get<int>("@ArtistId");
+                return artistId;
             }
-            return artistId;
         }
 
         public static int DeleteArtist(int artistId)
